@@ -1,0 +1,10 @@
+
+plugins {
+    id 'maven-publish'
+}
+
+
+dependencies {
+   
+}
+

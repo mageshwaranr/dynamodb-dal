@@ -1,0 +1,7 @@
+
+
+dependencies {
+    compile group:'software.amazon.awssdk', name: 'dynamodb', version: '2.5.6'
+   
+}
+

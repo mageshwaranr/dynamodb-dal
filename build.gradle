@@ -1,6 +1,5 @@
 allprojects {
     group = 'com.tteky.dynamodb'
-    version = '0.1.0-SNAPSHOT'
     repositories {
         jcenter() 
         maven {
@@ -45,8 +44,15 @@ subprojects {
         from sourceSets.main.allJava
     }
 
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        from javadoc
+        archiveClassifier = 'javadoc'
+    }
+
+
     artifacts {
         archives sourcesJar
+        archives javadocJar
     }
 
     signing {

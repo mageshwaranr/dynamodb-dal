@@ -5,14 +5,16 @@ import com.tteky.dynamodb.DynamoDBEntity;
 import com.tteky.dynamodb.DynamoField;
 import com.tteky.dynamodb.DynamoHashKey;
 import com.tteky.dynamodb.DynamoRangeKey;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;
 
 @DynamoDBEntity
+@ToString
 public class Movie {
 
-    @DynamoField
+    @DynamoField("yr")
     @DynamoHashKey
     private Integer year;
 

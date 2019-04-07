@@ -4,6 +4,7 @@ package com.tteky.dynamodb.processor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.tteky.dynamodb.DynamoField;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,30 +15,33 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
-@Getter
-@Setter
+
 @ToString
 public class AnnotatedField {
 
-    Element element;
-    Name qualifiedClassName;
-    Name simpleClassName;
-    Name elementName;
-    TypeMirror elementType;
-    TypeElement enclosingType;
+    @Getter
+    private Element element;
+    private Name qualifiedClassName;
+    private Name simpleClassName;
+    @Getter
+    private TypeMirror elementType;
+    @Getter
+    private TypeElement enclosingType;
 
     public AnnotatedField(Element element) {
         this.element = element;
-        elementName = element.getSimpleName();
         simpleClassName = element.getEnclosingElement().getSimpleName();
         enclosingType = ((TypeElement) element.getEnclosingElement());
         qualifiedClassName = enclosingType.getQualifiedName();
         elementType = element.asType();
+    }
 
+    public String getElementName() {
+        return Utils.attributeName(this);
     }
 
     public String getCasedFieldName(){
-        String input = this.elementName.toString();
+        String input = this.element.getSimpleName().toString();
         return  Utils.firstAsCaps(input);
     }
 

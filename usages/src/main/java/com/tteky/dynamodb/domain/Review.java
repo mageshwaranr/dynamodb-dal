@@ -3,12 +3,14 @@ package com.tteky.dynamodb.domain;
 import com.tteky.dynamodb.DynamoDBEntity;
 import com.tteky.dynamodb.DynamoField;
 import com.tteky.dynamodb.DynamoHashKey;
+import lombok.ToString;
 
 /**
  * An example entity with just hash key.
  * For illustration purpose, this is also used as embedded pojo in Movie entity
  */
 @DynamoDBEntity
+@ToString
 public class Review {
 
     @DynamoField
@@ -18,6 +20,7 @@ public class Review {
     private float rating;
 
     @DynamoHashKey
+    @DynamoField
     private String id;
 
     public String getReviewer() {

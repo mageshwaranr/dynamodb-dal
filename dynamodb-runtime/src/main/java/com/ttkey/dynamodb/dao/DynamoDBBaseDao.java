@@ -58,7 +58,7 @@ public abstract class DynamoDBBaseDao<T> {
     }
 
     /**
-     * Get item using partition key & sort key. Sort key can be null if the table has no sort key.
+     * Get item using partition key and sort key. Sort key can be null if the table has no sort key.
      *
      * @return
      */
@@ -128,7 +128,6 @@ public abstract class DynamoDBBaseDao<T> {
      * Inserts new entity
      *
      * @param entity
-     * @return
      */
     public void insertEntity(T entity) {
         var builder = PutItemRequest.builder()

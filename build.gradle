@@ -1,0 +1,106 @@
+allprojects {
+    group = 'com.tteky.dynamodb'
+    version = '0.1.0-SNAPSHOT'
+    repositories {
+        jcenter() 
+        maven {
+            url 'https://s3-us-west-2.amazonaws.com/dynamodb-local/release'
+        }
+    }
+}
+
+
+subprojects {
+    apply plugin: 'java'
+//    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    ext {
+        lombokVersion = '1.18.4'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        compile ("ch.qos.logback:logback-core:1.2.3")
+
+        // java utilities
+        compileOnly("org.projectlombok:lombok:${lombokVersion}")
+        annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
+        
+        //test
+        testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+        testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
+    }
+
+    task sourcesJar(type: Jar) {
+        archiveClassifier = 'sources'
+        from sourceSets.main.allJava
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+    signing {
+        sign configurations.archives
+    }
+
+
+//    uploadArchives {
+//        repositories {
+//            mavenDeployer {
+//                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+//
+//                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+//                    authentication(userName: ossUser, password: ossPassword)
+//                }
+//
+//                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+//                    authentication(userName: ossUser, password: ossPassword)
+//                }
+//
+//                pom.project {
+//                    name 'Xenon Extension : JAX-RS Support'
+//                    packaging 'jar'
+//
+//                    description 'JAX-RS annotation processing capability for Xenon Stateless services and Service client.'
+//                    url 'https://github.com/tteky/xenon-ext'
+//
+//                    pom.version = version
+//                    pom.artifactId = "xenon-ext-jaxrs"
+//                    pom.groupId = 'com.github.tteky'
+//
+//                    licenses {
+//                        license {
+//                            name 'The MIT License'
+//                            url 'https://opensource.org/licenses/MIT'
+//                        }
+//                    }
+//                    scm {
+//                        connection 'scm:git:git://github.com:mageshwaranr/dynamodb-dal.git'
+//                        developerConnection 'scm:git:ssh://github.com:mageshwaranr/dynamodb-dal.git'
+//                        url 'https://github.com/mageshwaranr/dynamodb-dal'
+//                    }
+//                    developers {
+//                        developer {
+//                            id 'mageshwaranr'
+//                            name 'Mageshwaran R'
+//                            email 'mageshwaran.r@gmail.com'
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+    
+}
+

@@ -1,10 +1,12 @@
 package com.tteky.dynamodb.domain;
 
 import com.tteky.dynamodb.DynamoField;
+import lombok.ToString;
 
 /**
  * POJO embedded in other entity types
  */
+@ToString
 public class Info {
     @DynamoField
     private String reviewer, comments;

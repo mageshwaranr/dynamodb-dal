@@ -4,6 +4,8 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import com.tteky.dynamodb.DynamoDBEntity;
+import com.tteky.dynamodb.DynamoField;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
@@ -46,5 +48,12 @@ public class Utils {
         } catch (IOException e) {
             environment.getMessager().printMessage(Diagnostic.Kind.ERROR,"Couldn't create java file");
         }
+    }
+
+    static String attributeName(AnnotatedField field) {
+        String fallback = field.getElement().getSimpleName().toString();
+        DynamoField annotation = field.getElement().getAnnotation(DynamoField.class);
+        String preferred = annotation == null ? "" : annotation.value();
+        return preferred.length() > 0 ? preferred : fallback;
     }
 }

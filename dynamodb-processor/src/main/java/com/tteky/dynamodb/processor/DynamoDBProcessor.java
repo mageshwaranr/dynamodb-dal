@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static com.tteky.dynamodb.processor.MapperMethodGenerationTemplates.attrToEntityMethodName;
 import static com.tteky.dynamodb.processor.MapperMethodGenerationTemplates.entityToAttrMethodName;
+import static com.tteky.dynamodb.processor.Utils.attributeName;
 import static com.tteky.dynamodb.processor.Utils.daoPackageName;
 import static java.lang.String.format;
 
@@ -136,9 +137,9 @@ public class DynamoDBProcessor extends AbstractProcessor {
     // implements return statement for //        protected abstract String[] getKeyFieldNames();
     private String keyFieldNamesReturnStmt(CodeGenerationContext ctxt) {
         StringBuilder returnValues = new StringBuilder("return new String[]{");
-        returnValues.append("\"").append(ctxt.getHashField().elementName).append("\"");
+        returnValues.append("\"").append(attributeName(ctxt.getHashField())).append("\"");
         if (ctxt.getRangeField() != null) {
-            returnValues.append(", ").append("\"").append(ctxt.getRangeField().elementName).append("\"");
+            returnValues.append(", ").append("\"").append(attributeName(ctxt.getRangeField())).append("\"");
         }
         returnValues.append("}");
         return returnValues.toString();

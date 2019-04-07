@@ -102,9 +102,10 @@ public class MapperMethodGenerationTemplates {
                                 itemMapperMethodName =  mapperMethodFor(itemParameterType);
                             }
                             // handle toAttributes part
+                            String conditionStmt = String.format("if(entity.get%s() != null) \n \t",annotatedField.getCasedFieldName());
                             String collectionTemplate = "super.listAttrToAttr(entity.get%s().stream().map(this::%s).map(this::mapAttrToAttr).collect($T.toList()))";
-                            String stmt = String.format(collectionTemplate,annotatedField.getCasedFieldName(),itemMapperMethodName.getKey());
-                            toAttributes.addStatement("fields.put($S,"+stmt + ")", annotatedField.getElementName(),Collectors.class);
+                            String stmt =  String.format(collectionTemplate,annotatedField.getCasedFieldName(),itemMapperMethodName.getKey());
+                            toAttributes.addStatement(conditionStmt +"fields.put($S,"+stmt + ")", annotatedField.getElementName(),Collectors.class);
                             // handle fromAttributes part
                             collectionTemplate = "super.toListAttr(attributes,$S).stream().map(this::attrToMapAttr).map(this::%s).collect($T.toList())";
                             stmt = String.format(collectionTemplate,itemMapperMethodName.getValue());
@@ -151,8 +152,6 @@ public class MapperMethodGenerationTemplates {
             });
             fromAttributes.addStatement("return entity");
             toAttributes.addStatement("return fields");
-            log.info("FromAttributes Method", fromAttributes.build().toString());
-            log.info("toAttributes method", toAttributes.build().toString());
             specs.add(fromAttributes.build());
             specs.add(toAttributes.build());
         });

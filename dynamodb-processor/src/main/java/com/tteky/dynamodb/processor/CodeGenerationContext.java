@@ -66,11 +66,6 @@ public class CodeGenerationContext {
         return collect;
     }
 
-    public Set<TypeMirror> fieldTypes() {
-        return  dynamoFields.values().stream()
-                .flatMap(annotatedFields -> annotatedFields.stream().map(AnnotatedField::getElementType))
-                .collect(toSet());
-    }
 
     public void addWarning(String warning){
         this.warnings.add(warning);

@@ -5,10 +5,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,9 +44,17 @@ public abstract class DynamoDBBaseDao<T> {
      * @return
      */
     public T getEntity(T entityWithKeyFieldsPopulated) {
-        var keys = this.convert(entityWithKeyFieldsPopulated);
+        Map<String, AttributeValue> keys = entityToKeyAttributes(entityWithKeyFieldsPopulated);
         return getItem(GetItemRequest.builder()
                 .key(keys));
+    }
+
+    private Map<String, AttributeValue> entityToKeyAttributes(T entityWithKeyFieldsPopulated) {
+        var allFields = this.convert(entityWithKeyFieldsPopulated);
+        Set<String> keyFieldNames = Set.of(getKeyFieldNames());
+        return allFields.entrySet().stream()
+                .filter(entry -> keyFieldNames.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**
@@ -217,7 +222,7 @@ public abstract class DynamoDBBaseDao<T> {
     }
 
     public T deleteEntity(T entityWithKeyFields) {
-        Map<String, AttributeValue> convert = this.convert(entityWithKeyFields);
+        Map<String, AttributeValue> convert = this.entityToKeyAttributes(entityWithKeyFields);
         return this.deleteItem(DeleteItemRequest.builder()
                         .key(convert)
                 , this.getKeyFieldNames());

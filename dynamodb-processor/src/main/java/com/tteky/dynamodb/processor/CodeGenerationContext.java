@@ -3,6 +3,7 @@ package com.tteky.dynamodb.processor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -12,6 +13,9 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
+@Slf4j
 public class CodeGenerationContext {
 
     private Map<ClassName, List<AnnotatedField>> dynamoFields = new HashMap<>();
@@ -33,9 +37,13 @@ public class CodeGenerationContext {
 
     public Set<? extends Element> findAnnotatedFields(RoundEnvironment roundEnv, Class<? extends Annotation> annotation) {
         Set<? extends Element> allFields = roundEnv.getElementsAnnotatedWith(annotation);
-        System.out.println("AllFields : "+allFields);
+        log.debug("AllFields : "+allFields);
+
+        Set<? extends Element> directFieldsOfEntity = allFields.stream().filter(e -> e.getEnclosingElement().equals(this.getEntity()))
+                .collect(toSet());
+        log.debug("directFieldsOfEntity:"+directFieldsOfEntity);
         Set<TypeName> relatedTypes = new HashSet<>();
-        allFields.forEach(e -> {
+        directFieldsOfEntity.forEach(e -> {
             TypeMirror typeMirror = e.asType();
             TypeName typeName = ClassName.get(typeMirror);
             relatedTypes.add(typeName);
@@ -44,28 +52,24 @@ public class CodeGenerationContext {
                 relatedTypes.addAll(typeArguments);
             }
         });
-        System.out.println("ALl relatedTypes:"+relatedTypes);
-
-        Map<Element, ? extends List<? extends Element>> directFieldsOfEntity = allFields.stream().filter(e -> e.getEnclosingElement().equals(this.getEntity()))
-                .collect(Collectors.groupingBy(Element::getEnclosingElement));
-        System.out.println("directFieldsOfEntity:"+directFieldsOfEntity);
+        log.debug("ALl relatedTypes:"+relatedTypes);
         Set<? extends Element> collect = allFields
                 .stream()
                 .filter(ele -> {
                     boolean inScope = ele.getEnclosingElement().equals(this.getEntity());
                     inScope = inScope || relatedTypes.contains(ClassName.get(((TypeElement) ele.getEnclosingElement())));
-                    System.out.println("Element "+ele + " isRelated?" +inScope);
+                    log.debug("Element "+ele + " isRelated?" +inScope);
                     return inScope;
                 })
-                .collect(Collectors.toSet());
-        System.out.println("All Eligible Fields:"+collect);
+                .collect(toSet());
+        log.debug("All Eligible Fields:"+collect);
         return collect;
     }
 
     public Set<TypeMirror> fieldTypes() {
         return  dynamoFields.values().stream()
                 .flatMap(annotatedFields -> annotatedFields.stream().map(AnnotatedField::getElementType))
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     public void addWarning(String warning){

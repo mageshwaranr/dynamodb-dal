@@ -1,15 +1,24 @@
 
 dependencies {
-    compile group:'software.amazon.awssdk', name: 'dynamodb', version: '2.5.6'
-   
+
     compile project(':dynamodb-annotations')
     compile project(':dynamodb-runtime')
-
     annotationProcessor 'com.google.auto.service:auto-service:1.0-rc4'
     compile 'com.google.auto.service:auto-service:1.0-rc4'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
+    compile group: 'com.squareup', name: 'javapoet', version: '1.11.1'
 
-    compile 'com.google.guava:guava:27.1-jre'
-    compile 'com.squareup:javapoet:1.11.1'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.4.1'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '2.1'
+    testCompile group: 'com.google.testing.compile', name: 'compile-testing', version: '0.15'
     
+
+
 }
 
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

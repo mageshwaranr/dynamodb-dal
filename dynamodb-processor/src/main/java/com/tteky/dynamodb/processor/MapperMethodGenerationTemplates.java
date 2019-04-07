@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.util.Types;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -17,54 +18,55 @@ import static java.lang.String.format;
 @Slf4j
 public class MapperMethodGenerationTemplates {
 
-    private Map<String, MethodSpec> templates = new HashMap<>();
-    private Map<String, Map.Entry<String, String>> supportedDataTypes = new HashMap<>();
+//    private Map<String, MethodSpec> templates = new HashMap<>();
+    private Map<String, Map.Entry<String, String>> supportedScalars = new HashMap<>();
 
+    public MapperMethodGenerationTemplates() {
+        this.initialize();
+    }
 
     public void initialize() {
-        templates.put("float", typeToScalar(TypeName.FLOAT));
-        templates.put("int", typeToScalar(TypeName.INT));
-        templates.put("double", typeToScalar(TypeName.DOUBLE));
-        templates.put("long", typeToScalar(TypeName.LONG));
-        templates.put("char", typeToScalar(TypeName.CHAR));
-        templates.put("byte", typeToScalar(TypeName.BYTE));
-        templates.put("short", typeToScalar(TypeName.SHORT));
-        templates.put(Float.class.getCanonicalName(), typeToScalar(TypeName.FLOAT));
-        templates.put(Integer.class.getCanonicalName(), typeToScalar(TypeName.INT));
-        templates.put(Double.class.getCanonicalName(), typeToScalar(TypeName.DOUBLE));
-        templates.put(Long.class.getCanonicalName(), typeToScalar(TypeName.LONG));
-        templates.put(Character.class.getCanonicalName(), typeToScalar(TypeName.CHAR.box()));
-        templates.put(Byte.class.getCanonicalName(), typeToScalar(TypeName.BYTE));
-        templates.put(Short.class.getCanonicalName(), typeToScalar(TypeName.SHORT));
-        supportedDataTypes.put("byte", Map.entry("byteToAttr", "toByte"));
-        supportedDataTypes.put("Byte", Map.entry("byteToAttr", "toByte"));
-        supportedDataTypes.put("short", Map.entry("shortToAttr", "toShort"));
-        supportedDataTypes.put("Short", Map.entry("shortToAttr", "toShort"));
-        supportedDataTypes.put("int", Map.entry("intToAttr", "toInt"));
-        supportedDataTypes.put("Integer", Map.entry("intToAttr", "toInt"));
-        supportedDataTypes.put("long", Map.entry("longToAttr", "toLong"));
-        supportedDataTypes.put("Long", Map.entry("longToAttr", "toLong"));
-        supportedDataTypes.put("double", Map.entry("doubleToAttr", "toDouble"));
-        supportedDataTypes.put("Double", Map.entry("doubleToAttr", "toDouble"));
-        supportedDataTypes.put("float", Map.entry("floatToAttr", "toFloat"));
-        supportedDataTypes.put("Float", Map.entry("floatToAttr", "toFloat"));
-        supportedDataTypes.put("char", Map.entry("charToAttr", "toChar"));
-        supportedDataTypes.put("Character", Map.entry("charToAttr", "toChar"));
-        supportedDataTypes.put("String", Map.entry("stringToAttr", "toString"));
-        supportedDataTypes.put("Object", Map.entry("objectToAttr", "toObject"));
-        supportedDataTypes.put("Enum", Map.entry("enumToAttr", "toEnum"));
-        supportedDataTypes.put("Boolean", Map.entry("booleanToAttr", "toBoolean"));
-        supportedDataTypes.put("boolean", Map.entry("booleanToAttr", "toBoolean"));
-        supportedDataTypes.put("BigDecimal", Map.entry("bigDecimalToAttr", "toBigDecimal"));
-        supportedDataTypes.put("BigInteger", Map.entry("bigIntegerToAttr", "toBigInteger"));
-        supportedDataTypes.put("Date", Map.entry("dateToAttr", "toDate"));
-        supportedDataTypes.put("Instance", Map.entry("instantToAttr", "toInstant"));
-        supportedDataTypes.put("Calendar", Map.entry("calendarToAttr", "toCalendar"));
+//        templates.put("float", typeToScalar(TypeName.FLOAT));
+//        templates.put("int", typeToScalar(TypeName.INT));
+//        templates.put("double", typeToScalar(TypeName.DOUBLE));
+//        templates.put("long", typeToScalar(TypeName.LONG));
+//        templates.put("char", typeToScalar(TypeName.CHAR));
+//        templates.put("byte", typeToScalar(TypeName.BYTE));
+//        templates.put("short", typeToScalar(TypeName.SHORT));
+//        templates.put(Float.class.getCanonicalName(), typeToScalar(TypeName.FLOAT));
+//        templates.put(Integer.class.getCanonicalName(), typeToScalar(TypeName.INT));
+//        templates.put(Double.class.getCanonicalName(), typeToScalar(TypeName.DOUBLE));
+//        templates.put(Long.class.getCanonicalName(), typeToScalar(TypeName.LONG));
+//        templates.put(Character.class.getCanonicalName(), typeToScalar(TypeName.CHAR.box()));
+//        templates.put(Byte.class.getCanonicalName(), typeToScalar(TypeName.BYTE));
+//        templates.put(Short.class.getCanonicalName(), typeToScalar(TypeName.SHORT));
+        supportedScalars.put("byte", Map.entry("byteToAttr", "toByte"));
+        supportedScalars.put("Byte", Map.entry("byteToAttr", "toByte"));
+        supportedScalars.put("short", Map.entry("shortToAttr", "toShort"));
+        supportedScalars.put("Short", Map.entry("shortToAttr", "toShort"));
+        supportedScalars.put("int", Map.entry("intToAttr", "toInt"));
+        supportedScalars.put("Integer", Map.entry("intToAttr", "toInt"));
+        supportedScalars.put("long", Map.entry("longToAttr", "toLong"));
+        supportedScalars.put("Long", Map.entry("longToAttr", "toLong"));
+        supportedScalars.put("double", Map.entry("doubleToAttr", "toDouble"));
+        supportedScalars.put("Double", Map.entry("doubleToAttr", "toDouble"));
+        supportedScalars.put("float", Map.entry("floatToAttr", "toFloat"));
+        supportedScalars.put("Float", Map.entry("floatToAttr", "toFloat"));
+        supportedScalars.put("char", Map.entry("charToAttr", "toChar"));
+        supportedScalars.put("Character", Map.entry("charToAttr", "toChar"));
+        supportedScalars.put("String", Map.entry("stringToAttr", "toString"));
+        supportedScalars.put("Object", Map.entry("objectToAttr", "toObject"));
+        supportedScalars.put("Enum", Map.entry("enumToAttr", "toEnum"));
+        supportedScalars.put("Boolean", Map.entry("booleanToAttr", "toBoolean"));
+        supportedScalars.put("boolean", Map.entry("booleanToAttr", "toBoolean"));
+        supportedScalars.put("BigDecimal", Map.entry("bigDecimalToAttr", "toBigDecimal"));
+        supportedScalars.put("BigInteger", Map.entry("bigIntegerToAttr", "toBigInteger"));
+        supportedScalars.put("Date", Map.entry("dateToAttr", "toDate"));
+        supportedScalars.put("Instance", Map.entry("instantToAttr", "toInstant"));
+        supportedScalars.put("Calendar", Map.entry("calendarToAttr", "toCalendar"));
     }
 
     Collection<MethodSpec> generateTypeConversionMethods(CodeGenerationContext context) {
-        this.initialize();
-
         Set<MethodSpec> specs = new HashSet<>();
         context.getDynamoFields().forEach((className, annotatedFields) -> {
             MethodSpec.Builder fromAttributes = MethodSpec.methodBuilder(attrToEntityMethodName(className))
@@ -79,9 +81,9 @@ public class MapperMethodGenerationTemplates {
                     .returns(ParameterizedTypeName.get(Map.class, String.class, AttributeValue.class));
 
             annotatedFields.forEach(annotatedField -> {
-                log.info("Field Name: {}; Simple Field Type: {} ; AnnotatedFieldInfo: {}", annotatedField.getCasedFieldName(), annotatedField.getSimpleFieldType(), annotatedField);
-                if (supportedDataTypes.containsKey(annotatedField.getSimpleFieldType())) {
-                    var entry = supportedDataTypes.get(annotatedField.getSimpleFieldType());
+                log.info(" Processing Field Name: {}; Simple Field Type: {} ; AnnotatedFieldInfo: {}", annotatedField.getCasedFieldName(), annotatedField.getSimpleFieldType(), annotatedField);
+                if (isScalar(annotatedField.getSimpleFieldType())) {
+                    var entry = supportedScalars.get(annotatedField.getSimpleFieldType());
                     fromAttributes.addStatement("entity.set$L(super.$L(attributes,$S))", annotatedField.getCasedFieldName(), entry.getValue(), annotatedField.getElementName());
                     toAttributes.addStatement("fields.put($S,$L)", annotatedField.getElementName(), String.format("super.%s(entity.get%s())", entry.getKey(), annotatedField.getCasedFieldName()));
                 } else {
@@ -94,7 +96,7 @@ public class MapperMethodGenerationTemplates {
                         Class<?> type = Class.forName(name);
                         if (Collection.class.isAssignableFrom(type)) {
                             // handle collection
-                            Map.Entry<String,String>  itemMapperMethodName = supportedDataTypes.get("Object") ;
+                            Map.Entry<String,String>  itemMapperMethodName = supportedScalars.get("Object") ;
                             if(annotatedField.isFieldParameterized() ) {
                                 TypeName itemParameterType = annotatedField.fieldParameterInfo().get(0);
                                 itemMapperMethodName =  mapperMethodFor(itemParameterType);
@@ -118,7 +120,7 @@ public class MapperMethodGenerationTemplates {
                                     // handle toAttributes part
                                     String stmt;
                                     String simpleValueType = AnnotatedField.simpleTypeOf(entryValueParameterType);
-                                    if(supportedDataTypes.containsKey(simpleValueType)) {
+                                    if(isScalar(simpleValueType)) {
                                          stmt = String.format("super.mapOfObjToAttr(entity.get%s(),this::%s)",annotatedField.getCasedFieldName(),entry.getKey());
 //                                        stmt= String.format("super.mapAttrToAttr(super.mapOfObjToMapOfAttr(entity.get%s(),this::%s))",annotatedField.getCasedFieldName(),entry.getKey());
                                         toAttributes.addStatement("fields.put($S,"+stmt + ")", annotatedField.getElementName());
@@ -159,11 +161,15 @@ public class MapperMethodGenerationTemplates {
 
     }
 
+    private boolean isScalar(String simpleFieldType) {
+        return supportedScalars.containsKey(simpleFieldType);
+    }
+
     public Map.Entry<String,String> mapperMethodFor( TypeName type) {
         String entryValueType = AnnotatedField.simpleTypeOf(type);
-        Map.Entry<String, String> entry = supportedDataTypes.get("Object") ;
-        if(supportedDataTypes.containsKey(entryValueType)) {
-            entry = supportedDataTypes.get(entryValueType);
+        Map.Entry<String, String> entry = supportedScalars.get("Object") ;
+        if(isScalar(entryValueType)) {
+            entry = supportedScalars.get(entryValueType);
         } else if(type instanceof ClassName){
             ClassName itemParameterClass = (ClassName) type;
             entry = Map.entry(entityToAttrMethodName(itemParameterClass),attrToEntityMethodName(itemParameterClass));
@@ -179,13 +185,13 @@ public class MapperMethodGenerationTemplates {
         return format("%sToAttributes", Utils.firstAsSmall(className.simpleName()));
     }
 
-    private MethodSpec typeToScalar(TypeName typeName) {
-        String methodName = format("%sToScalarValue", typeName.toString());
-        return MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PROTECTED)
-                .addParameter(typeName, "val")
-                .returns(String.class)
-                .addStatement(" return $T.valueOf($L)", String.class, "val")
-                .build();
-    }
+//    private MethodSpec typeToScalar(TypeName typeName) {
+//        String methodName = format("%sToScalarValue", typeName.toString());
+//        return MethodSpec.methodBuilder(methodName)
+//                .addModifiers(Modifier.PROTECTED)
+//                .addParameter(typeName, "val")
+//                .returns(String.class)
+//                .addStatement(" return $T.valueOf($L)", String.class, "val")
+//                .build();
+//    }
 }

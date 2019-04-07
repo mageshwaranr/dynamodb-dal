@@ -20,16 +20,20 @@ public class Utils {
     }
 
     static String daoPackageName(TypeElement entityTypeElement, ClassName entityClassName) {
-        String packageName = entityTypeElement.getAnnotation(DynamoDBEntity.class).packageName();
-        String s = entityClassName.packageName();
-        if(packageName.length() == 0) {
-            if(s.contains(".")) {
-                packageName = s.substring(0, s.lastIndexOf(".")) + ".dao";
+        String preferred = entityTypeElement.getAnnotation(DynamoDBEntity.class).packageName();
+        String fallback = entityClassName.packageName();
+        return extractPackageName(preferred, fallback);
+    }
+
+    static String extractPackageName(String preferred, String fallback) {
+        if(preferred.length() == 0) {
+            if(fallback.contains(".")) { // at times package name could be just test with out any dots
+                preferred = fallback.substring(0, fallback.lastIndexOf(".")) + ".dao";
             } else {
-                packageName = "dao";
+                preferred = "dao";
             }
         }
-        return packageName;
+        return preferred;
     }
 
     static void generateSrcCode(ProcessingEnvironment environment, String packageName, TypeSpec mapperClazz) {

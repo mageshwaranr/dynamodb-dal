@@ -2,10 +2,9 @@ package com.tteky.dynamodb.processor;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
-import com.tteky.dynamodb.DynamoDBEntity;
-import com.tteky.dynamodb.DynamoField;
-import com.tteky.dynamodb.DynamoHashKey;
-import com.tteky.dynamodb.DynamoRangeKey;
+import com.tteky.dynamodb.*;
+import com.ttkey.dynamodb.dao.DynamoDBBaseDao;
+import com.ttkey.dynamodb.mapper.DynamoDBBaseMapper;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -13,8 +12,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -25,25 +22,20 @@ import static com.tteky.dynamodb.processor.MapperMethodGenerationTemplates.entit
 import static com.tteky.dynamodb.processor.Utils.daoPackageName;
 import static java.lang.String.format;
 
-@AutoService(Processor.class)
 @Slf4j
-public class DynamoConverterProcessor extends AbstractProcessor {
+@AutoService(Processor.class)
+public class DynamoDBProcessor extends AbstractProcessor {
 
     private static final List<Class<? extends Annotation>> DYNAMO_TYPES = List.of(DynamoDBEntity.class, DynamoField.class);
 
 
     private Messager messager;
-    private Types typesUtil;
-    private Elements elementsUtil;
-    private Filer filer;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
+        log.info("Initialized");
         super.init(processingEnv);
         messager = processingEnv.getMessager();
-        typesUtil = processingEnv.getTypeUtils();
-        elementsUtil = processingEnv.getElementUtils();
-        filer = processingEnv.getFiler();
     }
 
     @Override
@@ -130,7 +122,7 @@ public class DynamoConverterProcessor extends AbstractProcessor {
                 .build();
         TypeSpec daoClazz = TypeSpec.classBuilder(format("%sDao", entityClassName.simpleName()))
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(ParameterizedTypeName.get(ClassName.get("com.ttkey.dynamo.dao", "DynamoBaseDao"), entityClassName))
+                .superclass(ParameterizedTypeName.get(ClassName.get(DynamoDBBaseDao.class), entityClassName))
                 .addMethods(List.of(convertFromEntityMethod, convertToEntityMethod, keyFieldNamesMethod))
                 .addMethod(constructor)
                 .addField(build)
@@ -154,8 +146,6 @@ public class DynamoConverterProcessor extends AbstractProcessor {
 
     private boolean populateHashKeyInfo(RoundEnvironment roundEnv, CodeGenerationContext ctxt) {
         Set<? extends Element> annotatedWith = findAnnotatedElements(roundEnv, DynamoHashKey.class, ctxt);
-
-
         if (annotatedWith.size() != 1) {
             String collect = collectFieldNames(annotatedWith);
             error(String.format("Exactly one field should be annotated with DynamoHashKey but found '%s'", collect));
@@ -205,7 +195,11 @@ public class DynamoConverterProcessor extends AbstractProcessor {
         log.info("entityTypeElement " + entityTypeElement);
         ClassName entityClassName = ClassName.get(entityTypeElement);
 
-        for (Element annotatedElement : context.findAnnotatedFields(roundEnv,DynamoField.class)) {
+        Set<Element> annotatedFields = new HashSet<>();
+        annotatedFields.addAll(context.findAnnotatedFields(roundEnv, DynamoField.class));
+        annotatedFields.addAll(context.findAnnotatedFields(roundEnv, DynamoHashKey.class));
+        annotatedFields.addAll(context.findAnnotatedFields(roundEnv, DynamoRangeKey.class));
+        for (Element annotatedElement : annotatedFields) {
             if (annotatedElement.getKind() != ElementKind.FIELD) {
                 error("Only field can be annotated with DynamoField", annotatedElement);
                 return false;
@@ -215,7 +209,7 @@ public class DynamoConverterProcessor extends AbstractProcessor {
             AnnotatedField annotatedField = new AnnotatedField(typeElement);
             ClassName key = ClassName.get(annotatedField.getEnclosingType());
             context.add(key, annotatedField);
-            log.info("VariableElement {}" + annotatedField);
+            log.info("VariableElement {}" , annotatedField);
         }
 
 
@@ -223,7 +217,7 @@ public class DynamoConverterProcessor extends AbstractProcessor {
 
         TypeSpec mapperClazz = TypeSpec.classBuilder(mapperClassName(entityClassName))
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(ClassName.get("com.ttkey.dynamo.mapper", "DynamoMapper"))
+                .superclass(ClassName.get(DynamoDBBaseMapper.class))
                 .addMethods(methodSpecs)
                 .build();
 
